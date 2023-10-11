@@ -2,6 +2,7 @@ import dht
 from machine import Pin
 from utils.oled import OLED
 
+
 class DHT22:
     def __init__(self):
         self.sensor = dht.DHT22(Pin(26))
@@ -19,4 +20,7 @@ class DHT22:
         self.oled.write(f'{humidity}%', 32, 48)
         self.oled.show()
 
-        return temperature, humidity
+        return {
+            'temperature': temperature,
+            'humidity': humidity
+        }
