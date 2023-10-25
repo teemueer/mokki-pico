@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+table {
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+th, td {
+    border: 1px solid #000;
+    white-space: nowrap;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input:not([type="submit"]) {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+</style>
+<body>
+    <h1>Device configuration</h1>
+    <form action="/configure" method="POST" autocomplete="off" autocapitalize="none">
+    <table>
+        <tbody>
+            <tr>
+                <th colspan="2">
+                    Wi-Fi
+                </th>
+            </tr>
+            <tr>
+                <td>SSID</td>
+                <td>
+                    <input name="wifi_ssid" value="{{wifi_ssid}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>Password</td>
+                <td>
+                    <input name="wifi_password" value="{{wifi_password}}" />
+                </td>
+            </tr>
+
+            <tr>
+                <th colspan="2">
+                    MQTT
+                </th>
+            </tr>
+            <tr>
+                <td>Server</td>
+                <td>
+                    <input name="mqtt_server" value="{{mqtt_server}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>Publish topic</td>
+                <td>
+                    <input name="mqtt_topic_publish" value="{{mqtt_topic_publish}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>Subscribe topic</td>
+                <td>
+                    <input name="mqtt_topic_subcribe" value="{{mqtt_topic_subcribe}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>Certificate</td>
+                <td>
+                    <input type="file" name="mqtt_certificate" value="{{mqtt_certificate}}" />
+                </td>
+            </tr>
+
+            <tr>
+                <th colspan="2">
+                    Sensors
+                </th>
+            </tr>
+            <tr>
+                <td>DHT22 Pin</td>
+                <td>
+                    <input type="number" name="dht22_pin" value="{{dht22_pin}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>KY018 Pin</td>
+                <td>
+                    <input type="number" name="ky018_pin" value="{{ky018_pin}}" />
+                </td>
+            </tr>
+            
+            <tr>
+                <th colspan="2">
+                    OLED
+                </th>
+            </tr>
+            <tr>
+                <td>ID</td>
+                <td>
+                    <input type="number" name="oled_id" value="{{oled_id}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>SCL</td>
+                <td>
+                    <input type="number" name="oled_scl" value="{{oled_scl}}" />
+                </td>
+            </tr>
+            <tr>
+                <td>SDA</td>
+                <td>
+                    <input type="number" name="oled_sda" value="{{oled_sda}}" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button>Save</button>
+    </form>
+</body>
+</html>

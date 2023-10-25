@@ -1,13 +1,10 @@
-import os
-import ubinascii
-import machine
+from ubinascii import hexlify
+from _thread import start_new_thread
+from machine import reset, unique_id
 
-def file_exists(filepath):
-    try:
-        os.stat(filepath)
-        return True
-    except:
-        return False
-    
+def restart():
+    print("*** Restarting...")
+    start_new_thread(reset, ())
+
 def get_unique_id():
-    return ubinascii.hexlify(machine.unique_id()).decode('utf-8')
+    return hexlify(unique_id()).decode()
