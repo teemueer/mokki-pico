@@ -5,7 +5,7 @@ from modes import app_mode, setup_mode
 
 def main():
     ssid = config.get("wifi_ssid")
-    if ssid:
+    if config.get("uid") and ssid:
         connect_to_wifi(ssid, config.get("wifi_password"))
 
     if is_connected_to_wifi():
