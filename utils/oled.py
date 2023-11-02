@@ -2,28 +2,40 @@ from machine import I2C, Pin
 from ssd1306 import SSD1306_I2C
 from micropython_qr import QRCode
 
-from config import config
-
 class OLED:
     def __init__(self):
-        id = int(config["oled_id"])
-        scl = Pin(int(config["oled_scl"]))
-        sda = Pin(int(config["oled_sda"]))
-        i2c = I2C(id, scl=scl, sda=sda)
+        i2c = I2C(id=1, scl=Pin(15), sda=Pin(14))
         self.display = SSD1306_I2C(128, 64, i2c)
         self.qr = QRCode(border=1)
+
+    def write(self, text):
+        self.fill(0)
+
+        y = 0
+        for t in text.split("\n"):
+            self.text(t, 0, y)
+            y += 8
+
+        self.show()
     
-    def write(self, text, x=0, y=0):
+    def text(self, text, x=0, y=0):
         self.display.text(text, x, y)
 
-    def generate_wifi_qr(self, ssid, password, scale=1):
-        # make display white for the black QR code
-        self.display.fill(1)
+    def fill(self, value):
+        self.display.fill(value)
 
-        # QR code format for connecting to an access point
-        self.qr.add_data(f"WIFI:S:{ssid};T:WPA;P:{password};;", 0)
+    def show(self):
+        self.display.show()
 
+    def generate_qr(self, message, scale=1):
+        self.fill(1)
+
+        self.qr.clear()
+        self.qr.add_data(message, 0)
         matrix = self.qr.get_matrix()
+        if not matrix:
+            return
+
         for y in range(len(matrix) * scale):
             for x in range(len(matrix[0]) * scale):
                 y_s = int(y/scale)
@@ -31,4 +43,4 @@ class OLED:
                 value = not matrix[y_s][x_s]
                 self.display.pixel(x, y, value)
 
-        self.display.show()
+        self.show()
