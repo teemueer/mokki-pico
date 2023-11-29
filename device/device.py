@@ -59,6 +59,13 @@ class Device:
         now = ticks_ms()
         if ticks_diff(now, self.last_mqtt_send_time) < self.mqtt_send_interval:
             return
+        
+        if self.mqtt:
+            self.mqtt.check_msg()
+            if self.mqtt.new_config:
+                for key, value in self.mqtt.new_config.items():
+                    self.config.set(key, float(value))
+                self.new_config = {}
 
         if not self.mqtt:
             uid = self.config.get("uid")
@@ -69,12 +76,19 @@ class Device:
                 return
 
         try:
-            data = {}
+            all_data = {}
             for sensor in self.sensors:
-                data |= sensor.measure()
+                sensor_data = sensor.measure()
+                
+                if "temperature" in sensor_data:
+                    set_temperature = self.config.get("set_temperature", 0)
+                    if set_temperature > 0:
+                        sensor_data["temperature"] = set_temperature
+                
+                all_data |= sensor_data
 
-            print("Publishing:", data)
-            self.mqtt.publish(data)
+            print(f"Publishing:", all_data)
+            self.mqtt.publish(all_data)
             
             self.last_mqtt_send_time = now
         except:
