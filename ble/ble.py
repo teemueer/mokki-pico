@@ -19,7 +19,7 @@ class BLE:
         self.sp._advertise()
         
         # in the future generate QR with just the name for the mobile app to read
-        self.oled.generate_qr(f"https://sensec.dy.fi/devices/register?name={self.name}")
+        self.oled.generate_qr(f"http://192.168.21.197:5000/devices/register?name={self.name}")
 
     def stop(self):
         self.ble.active(False)

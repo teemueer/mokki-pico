@@ -8,7 +8,7 @@ from ble import BLE
 from mqtt import MQTT
 from sensors import DHT22, KY018
 from utils.oled import OLED
-from utils.common import get_random_string
+from utils.common import get_random_string, restart
 
 class Device:
     INIT_MODE = 0
@@ -47,8 +47,11 @@ class Device:
 
         ssid = self.config.get("wlan_ssid")
         password = self.config.get("wlan_password")
+        
+        #print(ssid, password)
 
-        if ssid and self.wifi.connect(ssid, password, 10):
+        if ssid and self.wifi.connect(ssid, password, 30):
+            print("connected to wifi")
             self.switch_mode(self.APP_MODE)
         else:
             self.switch_mode(self.ERROR_MODE)
@@ -68,34 +71,28 @@ class Device:
                 self.new_config = {}
 
         if not self.mqtt:
-            uid = self.config.get("uid")
+            uid = self.config.get("uuid")
             server = self.config.get("mqtt_broker_url")
-            try:
-                self.mqtt = MQTT(uid, server)
-            except:
-                return
+            self.mqtt = MQTT(uid, server)
 
-        try:
-            all_data = {}
-            for sensor in self.sensors:
-                sensor_data = sensor.measure()
-                
-                if "temperature" in sensor_data:
-                    set_temperature = self.config.get("set_temperature", 0)
-                    if set_temperature > 0:
-                        sensor_data["temperature"] = set_temperature
-                
-                all_data |= sensor_data
 
-            print(f"Publishing:", all_data)
-            self.mqtt.publish(all_data)
+        all_data = {}
+        for sensor in self.sensors:
+            sensor_data = sensor.measure()
             
-            self.last_mqtt_send_time = now
-        except:
-            pass
+            if "temperature" in sensor_data:
+                set_temperature = self.config.get("set_temperature", 0)
+                if set_temperature > 0:
+                    sensor_data["temperature"] = set_temperature
+            
+            all_data |= sensor_data
 
+        print(f"Publishing:", all_data)
+        self.mqtt.publish(all_data)
+        
+        self.last_mqtt_send_time = now
 
-    def ble_mode(self, timeout=30):
+    def ble_mode(self, timeout=60):
         self.oled.write("*** BLE ***")
 
         name = get_random_string()
@@ -108,22 +105,32 @@ class Device:
             buffer += data
 
         ble.on_write(receive_data)
+        
+        with open("secrets/secret.enc2", "rb") as f:
+            secret = f.read()
 
         start = ticks_ms()
         while (ticks_ms() - start) < (timeout * 1000):
-            if buffer.endswith(b"\0"):  # type: ignore
-                try:
-                    data = json.loads(buffer[:-1])
-                    self.config.set("wlan_ssid", data.get("wlan_ssid"))
-                    self.config.set("wlan_password", data.get("wlan_password"))
-                    self.config.set("uid", data.get("uid"))
-                    self.config.set("mqtt_broker_url", data.get("mqtt_broker_url"))
-                    self.mqtt = None
-                except:
-                    pass
-                break
+            if ble.sp.is_connected():
+                print("sending secret...")
+                ble.send(secret)
+                
+                if buffer.endswith(b"\0"):  # type: ignore
+                    try:
+                        data = json.loads(buffer[:-1])
+                        print("got data", data)
+                        self.config.set("wlan_ssid", data.get("wlan_ssid"))
+                        self.config.set("wlan_password", data.get("wlan_password"))
+                        self.config.set("mqtt_broker_url", data.get("mqtt_broker_url"))
+                        self.config.set("uuid", data.get("uuid"))
+                        self.mqtt = None
+                    except:
+                        pass
+                    break
+            sleep(1)
 
         ble.stop()
+        #restart()
         self.switch_mode(self.INIT_MODE)
 
     def error_mode(self):
