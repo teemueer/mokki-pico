@@ -6,6 +6,7 @@ Micropython project files for Raspberry Pico Pi W (Micropython RP2040)
 
 ### Required packages
 
+- micropython-umqtt.simple
 - micropython_qr
 - micropython_ssd1306
 
